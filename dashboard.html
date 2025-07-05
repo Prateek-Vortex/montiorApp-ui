@@ -1,0 +1,14 @@
+<body>
+  <h2>📊 FocusBae App Usage</h2>
+
+  <div>
+    <button onclick="loadData(60)">Last Hour</button>
+    <button onclick="loadData(1440)">Today</button>
+  </div>
+
+  <canvas id="usageChart" width="400" height="400"></canvas>
+  <button onclick="downloadData()">📥 Export CSV</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="dashboard.js"></script>
+</body>

@@ -1,4 +1,4 @@
-const { app, Menu, Tray, nativeImage } = require('electron');
+const { app, Menu, Tray, nativeImage, BrowserWindow } = require('electron');
 const path = require('path');
 const axios = require('axios');
 
@@ -30,6 +30,20 @@ function showStats() {
         });
 }
 
+function openDashboard() {
+  const win = new BrowserWindow({
+    width: 500,
+    height: 500,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    }
+  });
+
+  win.loadFile('dashboard.html');
+}
+
+
 function createTray() {
     const iconPath = path.join(__dirname, 'iconTemplate.png');
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
@@ -38,10 +52,12 @@ function createTray() {
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Pause/Resume Reminders', click: togglePause },
         { label: 'Show Stats', click: showStats },
-        { label: 'Quit', click: () => app.quit() }
+        { label: 'Quit', click: () => app.quit() },
+        { label: 'Open Dashboard', click: openDashboard },
     ]);
     tray.setToolTip('FocusBae is running');
     tray.setContextMenu(contextMenu);
 }
+
 
 app.whenReady().then(createTray);
