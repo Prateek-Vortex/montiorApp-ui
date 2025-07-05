@@ -1,0 +1,79 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*.local
+
+# Electron build artifacts
+dist/
+build/
+out/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# VS Code settings
+.vscode/
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Electron forge or builder specific
+/.webpack/
+.cache/
+.release/
+*.dmg
+*.exe
+*.app
+*.deb
+*.rpm
+*.snap
+*.msi
+*.nupkg
+*.blockmap
+latest*.yml
+yarn.lock
+package-lock.json
+
+# Optional: If you use Electron Builder
+electron-builder.yaml
+electron-builder.json
+
+# Optional: If using native modules (bindings, node-gyp)
+build/Release/
+*.node
+
+# Optional: GitHub workflows (if generated)
+.github/
+
+# Optional: Test results
+test-results/
