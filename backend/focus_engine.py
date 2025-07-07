@@ -1,3 +1,4 @@
+# backend/focus_engine.py
 import threading
 import time
 import json
@@ -6,27 +7,28 @@ from datetime import datetime
 from pathlib import Path
 import subprocess
 
-# Initialize as a list to store activity entries
-activity_log = []
+stats = {
+    "start_time": datetime.now().isoformat(),
+    "app_usage": {},
+    "reminders_sent": 0,
+    "paused": False,
+    "active_seconds": 0,
+    "idle_count": 0,
+    "reminder_count": 0
+}
 
 STATS_FILE = Path(__file__).parent / "focus_stats.json"
 
 def save_stats():
     with open(STATS_FILE, "w") as f:
-        json.dump(activity_log, f, indent=2)
+        json.dump(stats, f, indent=2)
 
 def load_stats():
-    global activity_log
+    global stats
     if STATS_FILE.exists():
         with open(STATS_FILE, "r") as f:
-            loaded_data = json.load(f)
-            # Handle both old format (dict) and new format (list)
-            if isinstance(loaded_data, list):
-                activity_log = loaded_data
-            else:
-                # Convert old format to new format if needed
-                activity_log = []
-                print("⚠️  Converting old format to new activity log format")
+            loaded_stats = json.load(f)
+            stats.update(loaded_stats)
 
 def get_active_app_name():
     try:
@@ -38,45 +40,100 @@ def get_active_app_name():
         print("❌ Failed to get active app:", e)
         return "Unknown"
 
-def log_activity(activity_type, detail=""):
-    """Log an activity entry with timestamp"""
-    entry = {
-        "timestamp": datetime.now().isoformat(),
-        "activity": activity_type,
-        "detail": detail
-    }
-    activity_log.append(entry)
-    save_stats()
+def get_idle_time():
+    """Get system idle time in seconds"""
+    try:
+        output = subprocess.check_output([
+            'ioreg', '-c', 'IOHIDSystem'
+        ])
+        for line in output.decode('utf-8').split('\n'):
+            if 'HIDIdleTime' in line:
+                idle_ns = int(line.split('=')[1].strip())
+                return idle_ns / 1000000000  # Convert nanoseconds to seconds
+        return 0
+    except Exception as e:
+        print("❌ Failed to get idle time:", e)
+        return 0
+
+def is_system_idle(threshold_seconds=60):
+    """Check if system has been idle for more than threshold seconds"""
+    idle_time = get_idle_time()
+    return idle_time > threshold_seconds
 
 def reminder_loop():
     last_app = None
-    idle_start = None
+    was_idle = False
+    idle_start_time = None
     
     while True:
-        current_app = get_active_app_name()
+        if not stats["paused"]:
+            current_idle = is_system_idle(60)  # 60 seconds idle threshold
+            
+            if current_idle and not was_idle:
+                # Just became idle
+                idle_start_time = time.time()
+                stats["idle_count"] += 1
+                print("😴 System became idle")
+                was_idle = True
+                
+            elif not current_idle and was_idle:
+                # Just became active
+                if idle_start_time:
+                    idle_duration = time.time() - idle_start_time
+                    print(f"⚡ System became active after {idle_duration:.1f}s idle")
+                was_idle = False
+                idle_start_time = None
+                
+            elif not current_idle:
+                # System is active
+                app = get_active_app_name()
+                
+                # Track app usage in minutes
+                if app not in stats["app_usage"]:
+                    stats["app_usage"][app] = 0
+                stats["app_usage"][app] += 1  # Each loop = 1 minute of usage
+                
+                # Track active seconds
+                stats["active_seconds"] += 60
+                
+                # Send reminder (every minute when active)
+                stats["reminders_sent"] += 1
+                stats["reminder_count"] += 1
+                
+                # Log app switch if changed
+                if app != last_app:
+                    print(f"📱 App switched to: {app}")
+                    last_app = app
+                else:
+                    print(f"💧 Active in: {app}")
+                
+                save_stats()
         
-        # Check if app changed
-        if current_app != last_app:
-            if last_app is not None:
-                log_activity("Active screen", current_app)
-            last_app = current_app
-        else:
-            # Same app, just log active screen periodically
-            log_activity("Active screen", current_app)
-        
-        print(f"💧 Logged activity: {current_app}")
-        time.sleep(5)  # Log every 5 seconds like in your example data
+        time.sleep(60)  # Check every minute
 
-def start_idle_monitoring():
-    """Monitor for idle state (this is a simplified version)"""
-    # This would require additional system monitoring
-    # For now, just log active screen changes
-    pass
+def reset_daily_stats():
+    """Reset stats for a new day"""
+    global stats
+    stats = {
+        "start_time": datetime.now().isoformat(),
+        "app_usage": {},
+        "reminders_sent": 0,
+        "paused": False,
+        "active_seconds": 0,
+        "idle_count": 0,
+        "reminder_count": 0
+    }
+    save_stats()
+    print("🔄 Daily stats reset")
+
+def get_current_stats():
+    """Get current stats for external access"""
+    return stats.copy()
 
 if __name__ == "__main__":
     load_stats()
     print("✅ Focus engine started...")
-    print(f"📊 Current log has {len(activity_log)} entries")
+    print(f"📊 Current session: {stats['reminders_sent']} reminders sent")
     
     thread = threading.Thread(target=reminder_loop, daemon=True)
     thread.start()
@@ -85,4 +142,4 @@ if __name__ == "__main__":
         thread.join()
     except KeyboardInterrupt:
         print("\n🛑 Focus engine stopped")
-        log_activity("Session ended", "Manual stop")
+        save_stats()
