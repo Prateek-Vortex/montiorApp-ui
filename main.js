@@ -9,6 +9,11 @@ const {Notification} = require('electron');
 let tray = null;
 let isPaused = false;
 
+app.on('window-all-closed', (event) => {
+  // Prevent quitting the app when all windows are closed (except on explicit quit)
+  event.preventDefault();
+});
+
 function launchFocusEngine() {
   const enginePath = path.join(__dirname, 'backend', 'focus_engine.py');
 
@@ -136,6 +141,73 @@ function openChatWindow() {
   win.loadFile("chat.html");
 }
 
+let sidebarWindow = null;
+
+function isAnyDisplayFullscreen() {
+  const { screen } = require('electron');
+  // This checks if any display has a fullscreen window (macOS only)
+  return screen.getAllDisplays().some(display => display.bounds.height === screen.getPrimaryDisplay().workAreaSize.height);
+}
+
+function openSidebarChat() {
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const width = 380;
+  const height = primaryDisplay.workAreaSize.height;
+  const x = primaryDisplay.workArea.x + primaryDisplay.workArea.width - width;
+  const y = primaryDisplay.workArea.y;
+
+  if (sidebarWindow) {
+    sidebarWindow.focus();
+    return;
+  }
+
+  // Detect fullscreen: if workArea.height < bounds.height, then not fullscreen
+//   const isFullscreen = screen.getAllDisplays().some(display =>
+//   display.bounds.height > display.workAreaSize.height
+// );
+
+  const isFullscreen = isAnyDisplayFullscreen();
+  sidebarWindow = new BrowserWindow({
+    width,
+    height,
+    x,
+    y,
+    frame: false,
+    transparent: !isFullscreen, // Transparent if not fullscreen
+    alwaysOnTop: true,
+    resizable: false,
+    skipTaskbar: true,
+    hasShadow: false,
+    webPreferences: {
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  sidebarWindow.setAlwaysOnTop(true, 'screen-saver');
+  sidebarWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
+  // Only close on blur if not in fullscreen
+  sidebarWindow.on('blur', () => {
+    if (!sidebarWindow.isFullScreen()) {
+      sidebarWindow.close();
+    }
+  });
+
+  sidebarWindow.on('closed', () => {
+    sidebarWindow = null;
+  });
+
+  sidebarWindow.loadFile("sidebar.html");
+}
+// Listen for close-sidebar from renderer
+ipcMain.on('close-sidebar', () => {
+  if (sidebarWindow) {
+    sidebarWindow.close();
+  }
+});
+
 // 🔐 Auth window
 function openAuthWindow() {
   const win = new BrowserWindow({
@@ -207,7 +279,7 @@ function createTray() {
     { label: 'Quit', click: () => app.quit() },
     { label: 'Login', click: openAuthWindow },
     { label: 'Focus Summary', click: getFocusSummary },
-    { label: '🧠 Talk to Focus Assistant', click: openChatWindow },
+    { label: '🧠 Talk to Focus Assistant', click: openSidebarChat },
     { label: '💡 Get Focus Tip Now', click: triggerSmartReminder }
 
   ]);

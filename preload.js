@@ -11,6 +11,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getToken: () => {
     console.log("🔑 Getting token...");
     return ipcRenderer.invoke('get-token');
+  },
+
+  closeSidebar: () => {
+    console.log("🔒 Closing sidebar...");
+    ipcRenderer.send('close-sidebar');
   }
 });
 
