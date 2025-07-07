@@ -60,3 +60,4 @@ function syncToCloud() {
 }
 
 module.exports = { syncToCloud };
+
