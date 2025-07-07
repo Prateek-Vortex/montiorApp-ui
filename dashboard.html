@@ -1,4 +1,4 @@
-<body>
+<!-- <body>
   <h2>📊 FocusBae App Usage</h2>
 
   <div>
@@ -11,5 +11,240 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="dashboard.js"></script>
-</body>
+</body> -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FocusBae Dashboard</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #f5f5f5; 
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+    .chart-container {
+      margin: 20px 0;
+      position: relative;
+      height: 400px;
+    }
+    .error {
+      color: red;
+      padding: 10px;
+      background: #ffe6e6;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📊 FocusBae App Usage</h2>
+    
+    <div id="debug" style="font-size: 12px; color: #666; margin: 10px 0;"></div>
+    
+    <div>
+      <button onclick="loadData(60)">Last Hour</button>
+      <button onclick="loadData(1440)">Today</button>
+      <button onclick="loadData(10080)">This Week</button>
+    </div>
 
+    <div class="chart-container">
+      <canvas id="usageChart"></canvas>
+    </div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="loading" class="loading" style="display: none;">Loading...</div>
+    
+    <button onclick="downloadData()">📥 Export CSV</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let chart;
+    
+    function log(message) {
+      console.log(message);
+      document.getElementById('debug').innerHTML += message + '<br>';
+    }
+    
+    function showError(message) {
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = message;
+    }
+    
+    function hideError() {
+      document.getElementById('error').style.display = 'none';
+    }
+    
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+    
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    async function loadData(minutes = 1440) {
+      try {
+        log(`📡 Fetching app usage for last ${minutes} minutes...`);
+        hideError();
+        showLoading();
+
+        // Check if electronAPI is available
+        if (!window.electronAPI) {
+          throw new Error("Electron API not available. Make sure preload.js is loaded.");
+        }
+
+        const token = await window.electronAPI.getToken();
+        log(`🔑 Token received: ${token ? 'Yes' : 'No'}`);
+        
+        if (!token) {
+          throw new Error("You must be logged in to view your dashboard.");
+        }
+
+        const url = `https://focusbee-cloud.onrender.com/app-usage?since_minutes=${minutes}`;
+        log(`📡 Fetching: ${url}`);
+
+        const response = await fetch(url, {
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        });
+
+        log(`📨 Response status: ${response.status}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        log(`📊 Data received: ${JSON.stringify(data)}`);
+
+        if (!data || Object.keys(data).length === 0) {
+          throw new Error("No app usage data available for the selected time period.");
+        }
+
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        // Destroy existing chart
+        if (chart) {
+          chart.destroy();
+        }
+
+        // Create new chart
+        const ctx = document.getElementById('usageChart').getContext('2d');
+        chart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              backgroundColor: labels.map((_, i) => {
+                const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+                return colors[i % colors.length];
+              }),
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${label}: ${value} min (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Store for CSV export
+        window._latestUsageData = data;
+        log(`✅ Chart created successfully`);
+        
+      } catch (error) {
+        log(`❌ Error: ${error.message}`);
+        showError(error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function downloadData() {
+      try {
+        const data = window._latestUsageData || {};
+        
+        if (Object.keys(data).length === 0) {
+          alert("No data to export. Please load some data first.");
+          return;
+        }
+        
+        let csv = "App,Minutes\n";
+        for (const app in data) {
+          csv += `"${app}",${data[app]}\n`;
+        }
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `focusbae_app_usage_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        log("📥 CSV exported successfully");
+        
+      } catch (error) {
+        log(`❌ Export error: ${error.message}`);
+        alert("Failed to export data: " + error.message);
+      }
+    }
+
+    window.onload = () => {
+      log("📊 Dashboard loaded");
+      log(`🔧 Electron API available: ${!!window.electronAPI}`);
+      
+      // Load today's data by default
+      loadData(1440);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+[
+  {
+    "timestamp": "2025-07-07T16:59:36.508096",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T16:59:41.711134",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T16:59:46.949432",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T16:59:52.146330",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T16:59:57.368648",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:02.619300",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:07.871719",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:13.095382",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:18.366022",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:23.568350",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:29.035689",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:34.266803",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:39.529135",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:40.461649",
+    "activity": "Session ended",
+    "detail": "Manual stop"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:50.766500",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:00:55.985313",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:01.185711",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:06.395005",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:11.605782",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:16.830174",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:22.063657",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:27.324274",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:32.515534",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:37.744387",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:42.956645",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:48.164206",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:53.432567",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:01:58.636243",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-07T17:02:00.848459",
+    "activity": "Session ended",
+    "detail": "Manual stop"
+  }
+]

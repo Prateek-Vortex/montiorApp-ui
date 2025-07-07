@@ -1,15 +1,16 @@
-const { app, Menu, Tray, nativeImage, BrowserWindow, ipcMain, Notification } = require('electron');
+const { app, Menu, Tray, nativeImage, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const { spawn } = require('child_process');
 const { syncToCloud } = require('./sync');
+const {Notification} = require('electron');
 
 let tray = null;
 let isPaused = false;
 
 function launchFocusEngine() {
-  const enginePath = path.join(__dirname, 'backend', 'tracker.py');
+  const enginePath = path.join(__dirname, 'backend', 'focus_engine.py');
 
   const python = process.platform === 'win32' ? 'python' : 'python3';
 
@@ -75,19 +76,25 @@ function showStats() {
 // 🌐 Open dashboard window
 function openDashboard() {
   const win = new BrowserWindow({
-    width: 500,
-    height: 500,
+    width: 900,
+    height: 700,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js') // ✅ Add this line!
     }
   });
+
   win.loadFile('dashboard.html');
+  
+  // Optional: Open dev tools for debugging
+  // win.webContents.openDevTools();
 }
 
 // 📤 Focus summary from cloud
 function getFocusSummary() {
   const token = getStoredToken();
+
   if (!token) {
     console.log("❌ No token found.");
     return;
@@ -98,16 +105,22 @@ function getFocusSummary() {
       "Authorization": `Bearer ${token}`
     }
   })
-    .then(res => res.json())
-    .then(data => {
-      new Notification({
-        title: "🧠 Focus Summary",
-        body: data.summary
-      }).show();
-    })
-    .catch(err => {
-      console.error("❌ Failed to fetch focus summary:", err.message);
+  .then(res => res.json())
+  .then(data => {
+    console.log("🧠 Focus Summary:", data.summary);
+    
+    // ✅ Use Electron's Notification constructor
+    const notification = new Notification({
+      title: "🧠 Focus Summary",
+      body: data.summary,
+      silent: false
     });
+    
+    notification.show();
+  })
+  .catch(err => {
+    console.error("❌ Failed to fetch focus summary:", err.message);
+  });
 }
 
 // 💬 Chat with assistant
@@ -135,6 +148,52 @@ function openAuthWindow() {
   win.loadFile('auth.html');
 }
 
+function triggerSmartReminder() {
+  const token = getStoredToken();
+  console.log("🔔 Triggering smart reminder...");
+  console.log("🔑 Using token:", token);
+  
+  if (!token) {
+    console.log("❌ No token found for smart reminder.");
+    return;
+  }
+
+  fetch("https://focusbee-cloud.onrender.com/focus/reminder-tip", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.tip) {
+      console.log("📢 Reminder tip received:", data.tip);
+      
+      // ✅ Use Electron's Notification constructor
+      const notification = new Notification({
+        title: "🧠 Focus Tip",
+        body: data.tip,
+        silent: false, // Allow sound
+        urgency: 'normal' // Linux only
+      });
+      
+      // Optional: Add click handler
+      notification.on('click', () => {
+        console.log('Notification clicked');
+      });
+      
+      notification.show();
+    } else {
+      console.log("ℹ️ No tip returned.");
+    }
+  })
+  .catch(err => {
+    console.error("❌ Failed to get reminder tip:", err.message);
+  });
+}
+
+
+
 // 🍭 Tray menu
 function createTray() {
   const iconPath = path.join(__dirname, 'iconTemplate.png');
@@ -148,7 +207,9 @@ function createTray() {
     { label: 'Quit', click: () => app.quit() },
     { label: 'Login', click: openAuthWindow },
     { label: 'Focus Summary', click: getFocusSummary },
-    { label: '🧠 Talk to Focus Assistant', click: openChatWindow }
+    { label: '🧠 Talk to Focus Assistant', click: openChatWindow },
+    { label: '💡 Get Focus Tip Now', click: triggerSmartReminder }
+
   ]);
   tray.setToolTip('FocusBae is running');
   tray.setContextMenu(contextMenu);
@@ -160,5 +221,7 @@ app.whenReady().then(() => {
   createTray();
   console.log("🕒 Starting auto sync...");
   setInterval(syncToCloud, 15 * 60 * 1000);
+  setInterval(triggerSmartReminder, 45 * 60 * 1000); 
+
 });
 

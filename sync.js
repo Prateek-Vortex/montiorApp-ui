@@ -14,7 +14,7 @@ function getStoredToken() {
 
 function readScreenLog() {
   try {
-    const raw = fs.readFileSync(path.join(__dirname, "backend", "data", "focusbae_screenlog.json"), "utf-8");
+    const raw = fs.readFileSync(path.join(__dirname, "backend", "focus_stats.json"), "utf-8");
     return JSON.parse(raw);
   } catch {
     return [];
