@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Focus Assistant</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #response { margin-top: 20px; white-space: pre-wrap; }
+    .debug { color: #666; font-size: 12px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>💬 Ask Focus Assistant</h2>
+  <input id="question" type="text" placeholder="Type your question..." style="width: 100%;" />
+  <button id="sendBtn" onclick="send()">Send</button>
+  <div id="response"></div>
+  <div id="debug" class="debug"></div>
+
+  <script>
+    document.getElementById("question").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") send();
+});
+
+    // Add debug logging
+    function log(message) {
+      console.log(message);
+      const debugDiv = document.getElementById("debug");
+      debugDiv.innerHTML += message + "<br>";
+    }
+
+    // Check if electronAPI is available
+    log("👋 Electron API loaded: " + (window.electronAPI ? "✅ Yes" : "❌ No"));
+    
+    // Add event listener as backup
+    document.getElementById("sendBtn").addEventListener("click", send);
+    
+    // Also allow Enter key to send
+    document.getElementById("question").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        send();
+      }
+    });
+
+    async function send() {
+      try {
+        log("📡 Send function called");
+        
+        const question = document.getElementById("question").value.trim();
+        if (!question) {
+          log("❌ Empty question");
+          return;
+        }
+        
+        log("🔍 Question: " + question);
+        log("🔑 Getting token...");
+        
+        if (!window.electronAPI) {
+          log("❌ electronAPI not available");
+          document.getElementById("response").innerText = "❌ Electron API not available";
+          return;
+        }
+
+        const token = await window.electronAPI.getToken();
+        log("🔑 Token received: " + (token ? "✅ Yes" : "❌ No"));
+        
+        if (!token) {
+          document.getElementById("response").innerText = "❌ No auth token found.";
+          return;
+        }
+
+        log("📡 Sending request to server...");
+        document.getElementById("response").innerText = "⏳ Sending...";
+        
+        const response = await fetch("https://focusbee-cloud.onrender.com/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ question })
+        });
+        
+        log("📨 Response status: " + response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        log("📨 Response data received");
+        
+        document.getElementById("response").innerText = data.response || "❌ No reply from server";
+        
+      } catch (err) {
+        log("❌ Error: " + err.message);
+        document.getElementById("response").innerText = "❌ Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

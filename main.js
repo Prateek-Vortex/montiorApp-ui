@@ -3,6 +3,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const axios = require('axios');
 const fs = require('fs');
+const { syncToCloud } = require('./sync');
 
 let tray = null;
 let isPaused = false;
@@ -36,6 +37,10 @@ function openAuthWindow() {
 // Store JWT in a local file
 ipcMain.handle('store-token', (_, token) => {
   fs.writeFileSync(path.join(__dirname, 'token.json'), JSON.stringify({ token }));
+});
+
+ipcMain.handle('get-token', () => {
+  return getStoredToken(); // reuse your existing method
 });
 
 function getStoredToken() {
@@ -86,6 +91,50 @@ function openDashboard() {
   win.loadFile('dashboard.html');
 }
 
+function getFocusSummary() {
+  const token = getStoredToken();  // from preload or token.json
+
+  if (!token) {
+    console.log("❌ No token found.");
+    return;
+  }
+
+  fetch("https://focusbee-cloud.onrender.com/focus/me/focus-summary", {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("🧠 Focus Summary:", data.summary);
+    // Optionally: show popup or render in dashboard.html
+    new Notification({
+      title: "🧠 Focus Summary",
+      body: data.summary
+    }).show();
+  })
+  .catch(err => {
+    console.error("❌ Failed to fetch focus summary:", err.message);
+  });
+}
+
+
+function openChatWindow() {
+  const win = new BrowserWindow({
+    width: 500,
+    height: 400,
+    webPreferences: {
+        contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js') // ✅ inject preload.js here
+    }
+  });
+  win.loadFile("chat.html");
+}
+
+
+
+
+
 function createTray() {
   const iconPath = path.join(__dirname, 'iconTemplate.png');
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
@@ -96,7 +145,9 @@ function createTray() {
     { label: 'Show Stats', click: showStats },
     { label: 'Open Dashboard', click: openDashboard },
     { label: 'Quit', click: () => app.quit() },
-    { label: 'Login', click: openAuthWindow }
+    { label: 'Login', click: openAuthWindow },
+    { label: 'Focus Summary', click: getFocusSummary },
+    { label: '🧠 Talk to Focus Assistant', click: openChatWindow }
   ]);
   tray.setToolTip('FocusBae is running');
   tray.setContextMenu(contextMenu);
@@ -105,4 +156,6 @@ function createTray() {
 app.whenReady().then(() => {
   launchBackend();
   createTray();
+    console.log("🕒 Starting auto sync...");
+  setInterval(syncToCloud, 15 * 60 * 1000); 
 });

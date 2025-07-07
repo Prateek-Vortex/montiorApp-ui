@@ -1,0 +1,297 @@
+[
+  {
+    "timestamp": "2025-07-05T22:58:26.081414",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:31.319712",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:36.560511",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:41.747737",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:46.951362",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:52.190565",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:58:57.404450",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:02.636187",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:07.864869",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:13.116966",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:18.360540",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:23.603773",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:28.848275",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:34.084002",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:39.331657",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:44.583000",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:49.826312",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T22:59:55.031897",
+    "activity": "Active screen",
+    "detail": "Terminal"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:00.277843",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:05.570206",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:10.785589",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:16.025823",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:21.223895",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:26.491804",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:31.838884",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:37.108604",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:42.309728",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:47.510449",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:52.913193",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:00:58.255269",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:03.499076",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:08.676319",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:13.916585",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:19.201644",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:24.430945",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:29.701625",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:34.953928",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:40.204986",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:45.456580",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:50.710390",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:01:56.100154",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:01.330165",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:06.605925",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:11.801139",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:17.057608",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:22.291142",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:27.524651",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:32.764673",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:38.001878",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:43.238639",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:48.484363",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:53.729425",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:02:59.010431",
+    "activity": "Active screen",
+    "detail": "Google Chrome"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:04.290124",
+    "activity": "Active screen",
+    "detail": "Electron"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:09.539616",
+    "activity": "Active screen",
+    "detail": "Finder"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:14.753665",
+    "activity": "Active screen",
+    "detail": "Finder"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:20.018648",
+    "activity": "Active screen",
+    "detail": "Finder"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:25.259687",
+    "activity": "Active screen",
+    "detail": "Finder"
+  },
+  {
+    "timestamp": "2025-07-05T23:03:30.265917",
+    "activity": "Idle started",
+    "detail": ""
+  }
+]
