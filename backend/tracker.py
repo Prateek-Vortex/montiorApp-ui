@@ -7,10 +7,10 @@ from pathlib import Path
 from datetime import datetime
 from pynput import mouse, keyboard
 
-from api.state import paused, stats
+from data.state import paused, stats
 from config import IDLE_THRESHOLD, LOG_INTERVAL, REMINDER_THRESHOLD
 from core.logger import log_action
-from core.reminders import maybe_trigger_reminder
+from core.reminder import maybe_trigger_reminder
 
 last_active_time = time.time()
 is_idle = False
@@ -106,3 +106,4 @@ def start_tracking():
 if __name__ == "__main__":
     print("✅ FocusBae Tracker started...")
     start_tracking()
+

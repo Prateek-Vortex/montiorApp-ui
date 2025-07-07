@@ -33,3 +33,4 @@ form.addEventListener("submit", (e) => {
 document.getElementById("signupBtn").addEventListener("click", () => {
   auth("register");
 });
+

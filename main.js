@@ -161,3 +161,4 @@ app.whenReady().then(() => {
   console.log("🕒 Starting auto sync...");
   setInterval(syncToCloud, 15 * 60 * 1000);
 });
+
