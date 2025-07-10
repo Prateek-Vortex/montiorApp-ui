@@ -79,3 +79,9 @@ build/Release/
 test-results/
 token.json
 
+
+# Data files
+clipboard_history.json
+focus_stats.json
+stats_backup.json
+

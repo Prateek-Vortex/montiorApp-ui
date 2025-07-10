@@ -1,7 +1,8 @@
-const { clipboard, BrowserWindow, globalShortcut, ipcMain } = require('electron');
+const { clipboard, BrowserWindow, globalShortcut, ipcMain, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { keyboard, Key } = require('@nut-tree-fork/nut-js');
+const { execSync } = require('child_process');
 
 class ClipboardManager {
   constructor() {
@@ -13,18 +14,24 @@ class ClipboardManager {
     this.registerIpcHandlers();
   }
 
- registerIpcHandlers() {
-  ipcMain.handle('copy-clipboard-item', (_, content) => {
-    clipboard.writeText(content);
-    this.addToHistory(content); // LRU behavior
-    return true;
-  });
+  static lastFocusedApp = null;
 
-  ipcMain.handle('get-clipboard-history', () => {
-    return this.clipboardHistory;
-  });
-}
+  registerIpcHandlers() {
+    ipcMain.handle('copy-clipboard-item', (_, content) => {
+      clipboard.writeText(content);
+      this.addToHistory(content); // LRU behavior
+      return true;
+    });
 
+    ipcMain.handle('get-clipboard-history', () => {
+      return this.clipboardHistory;
+    });
+
+    // New: copy and paste by index
+    ipcMain.handle('copy-and-paste-clipboard-item', (_, index) => {
+      return this.copyItem(index);
+    });
+  }
 
   // Initialize clipboard monitoring
   initialize() {
@@ -78,17 +85,15 @@ class ClipboardManager {
 
   // Add content to clipboard history with LRU logic
   addToHistory(content) {
-  this.clipboardHistory = this.clipboardHistory.filter(item => item.content !== content);
-  this.clipboardHistory.unshift({ content, timestamp: Date.now() });
-  this.clipboardHistory = this.clipboardHistory.slice(0, this.MAX_CLIPBOARD_HISTORY);
-  this.saveHistoryToFile();
+    this.clipboardHistory = this.clipboardHistory.filter(item => item.content !== content);
+    this.clipboardHistory.unshift({ content, timestamp: Date.now() });
+    this.clipboardHistory = this.clipboardHistory.slice(0, this.MAX_CLIPBOARD_HISTORY);
+    this.saveHistoryToFile();
 
-  if (this.on && typeof this.on === 'function') {
-    this.on('historyChanged'); // emit event
+    if (this.on && typeof this.on === 'function') {
+      this.on('historyChanged'); // emit event
+    }
   }
-}
-
-  
 
   // Get clipboard history
   getHistory() {
@@ -103,36 +108,46 @@ class ClipboardManager {
   }
 
   // Copy item to clipboard and move to top (LRU)
- copyItem(index) {
-  if (index >= 0 && index < this.clipboardHistory.length) {
-    const item = this.clipboardHistory[index];
-    clipboard.writeText(item.content);
+  async copyItem(index) {
+    if (index >= 0 && index < this.clipboardHistory.length) {
+      const item = this.clipboardHistory[index];
+      clipboard.writeText(item.content);
 
-    // Move to top of history (LRU)
-    this.clipboardHistory.splice(index, 1);
-    this.clipboardHistory.unshift(item);
-    this.saveHistoryToFile();
+      // Move to top of history (LRU)
+      this.clipboardHistory.splice(index, 1);
+      this.clipboardHistory.unshift(item);
+      this.saveHistoryToFile();
 
-    // ✅ Simulate paste using nut.js
-    setTimeout(async () => {
-      try {
-        if (process.platform === 'darwin') {
-          await keyboard.pressKey(Key.LeftMeta, Key.V);
-          await keyboard.releaseKey(Key.LeftMeta, Key.V);
-        } else {
-          await keyboard.pressKey(Key.LeftControl, Key.V);
-          await keyboard.releaseKey(Key.LeftControl, Key.V);
+      // macOS: Refocus previous app and paste
+      if (process.platform === 'darwin' && ClipboardManager.lastFocusedApp) {
+        try {
+          const script = `tell application \"System Events\"\nset frontmost of (first process whose bundle identifier is \"${ClipboardManager.lastFocusedApp}\") to true\ndelay 0.1\nkeystroke \"v\" using {command down}\nend tell`;
+          execSync(`osascript -e '${script}'`);
+          console.log('📥 Pasted in previous app (macOS)');
+        } catch (err) {
+          console.error('❌ Failed to refocus and paste:', err.message);
         }
-        console.log("📥 Simulated paste after copying");
-      } catch (err) {
-        console.error("❌ Failed to simulate paste:", err.message);
+      } else {
+        // ✅ Simulate paste using nut.js (fallback for other platforms)
+        setTimeout(async () => {
+          try {
+            if (process.platform === 'darwin') {
+              await keyboard.pressKey(Key.LeftMeta, Key.V);
+              await keyboard.releaseKey(Key.LeftMeta, Key.V);
+            } else {
+              await keyboard.pressKey(Key.LeftControl, Key.V);
+              await keyboard.releaseKey(Key.LeftControl, Key.V);
+            }
+            console.log('📥 Simulated paste after copying');
+          } catch (err) {
+            console.error('❌ Failed to simulate paste:', err.message);
+          }
+        }, 150); // small delay to ensure clipboard write
       }
-    }, 150); // small delay to ensure clipboard write
-
-    return true;
+      return true;
+    }
+    return false;
   }
-  return false;
-}
 
   // Create menu items for tray
   createMenuItems() {
@@ -156,41 +171,63 @@ class ClipboardManager {
   }
 
   // Show clipboard history window
- showHistoryWindow() {
-  const win = new BrowserWindow({
-    width: 600,
-    height: 400,
-    show: false, // 👈 Important: create hidden
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    focusable: true,
-    frame: true,
-    resizable: true,
-    transparent: false,
-    webPreferences: {
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+  showHistoryWindow() {
+    // Find the display nearest to the cursor
+    const cursorPoint = screen.getCursorScreenPoint();
+    const display = screen.getDisplayNearestPoint(cursorPoint);
+    const width = 600;
+    const height = 400;
+    // Center window around cursor, but keep within display bounds
+    let x = Math.max(display.bounds.x, Math.min(cursorPoint.x - width / 2, display.bounds.x + display.workArea.width - width));
+    let y = Math.max(display.bounds.y, Math.min(cursorPoint.y - height / 2, display.bounds.y + display.workArea.height - height));
+
+    // Track last focused app (macOS only)
+    if (process.platform === 'darwin') {
+      try {
+        const bundleId = execSync(`osascript -e 'tell application "System Events" to get bundle identifier of first application process whose frontmost is true'`).toString().trim();
+        // Don't store if it's our own Electron app
+        if (!bundleId.includes('electron')) {
+          ClipboardManager.lastFocusedApp = bundleId;
+        }
+      } catch (err) {
+        console.error('❌ Failed to get active app bundle id:', err.message);
+      }
     }
-  });
 
-  // 👇 Critical order: first set visibility across spaces
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  win.setAlwaysOnTop(true, 'screen-saver');
+    const win = new BrowserWindow({
+      width,
+      height,
+      x,
+      y,
+      show: false, // 👈 Important: create hidden
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      focusable: true,
+      frame: true,
+      resizable: true,
+      transparent: false,
+      webPreferences: {
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.js')
+      }
+    });
 
-  // Then show the window (on correct desktop)
-  win.once('ready-to-show', () => {
-    win.show();
-  });
+    // 👇 Critical order: first set visibility across spaces
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    win.setAlwaysOnTop(true, 'screen-saver');
 
-  win.loadFile('clipboard-history.html');
+    // Then show the window (on correct desktop)
+    win.once('ready-to-show', () => {
+      win.show();
+    });
 
-  // Optional: auto-close on blur
-  win.on('blur', () => {
-    win.close();
-  });
+    win.loadFile('clipboard-history.html');
 
- // lastFocusedApp = getActiveAppBundleId();
-}
+    // Optional: auto-close on blur
+    win.on('blur', () => {
+      win.close();
+    });
+  }
 
   // Generate HTML for history window
   generateHistoryHtml() {
@@ -350,3 +387,6 @@ class ClipboardManager {
 }
 
 module.exports = ClipboardManager;
+
+
+
