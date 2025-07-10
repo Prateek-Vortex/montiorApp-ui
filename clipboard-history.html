@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Clipboard History</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    .item {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .item:hover {
+      background: #eaeaff;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 Clipboard History</h2>
+  <div id="history-container">Loading...</div>
+  <script>
+    window.electronAPI.getClipboardHistory().then(history => {
+      const container = document.getElementById('history-container');
+      container.innerHTML = '';
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.textContent = item.content.length > 100 ? item.content.substring(0, 100) + '...' : item.content;
+        div.onclick = () => {
+  window.electronAPI.copyClipboardItem(item.content).then(() => {
+    // ✅ Ask main process to refocus last app and paste
+    window.electronAPI.pasteInPreviousApp();
+    window.close();
+  });
+};
+        container.appendChild(div);
+      });
+    });
+  </script>
+</body>
+</html>

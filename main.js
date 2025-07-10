@@ -1,18 +1,47 @@
-const { app, Menu, Tray, nativeImage, BrowserWindow, ipcMain } = require('electron');
+const { app, Menu, Tray, nativeImage, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const { syncToCloud } = require('./sync');
-const {Notification} = require('electron');
+const { Notification } = require('electron');
+const ClipboardManager = require('./clipboard-manager');
 
 let tray = null;
 let isPaused = false;
+let clipboardManager = null;
 
 app.on('window-all-closed', (event) => {
   // Prevent quitting the app when all windows are closed (except on explicit quit)
   event.preventDefault();
 });
+
+// function getActiveAppBundleId() {
+//   try {
+//     const bundleId = execSync(`osascript -e 'tell application "System Events" to get bundle identifier of first application process whose frontmost is true'`).toString().trim();
+//     return bundleId;
+//   } catch (err) {
+//     console.error('❌ Failed to get active app bundle id:', err.message);
+//     return null;
+//   }
+// }
+
+// let lastFocusedApp = null;
+
+// ipcMain.handle('paste-in-previous-app', () => {
+//   if (lastFocusedApp && process.platform === 'darwin') {
+//     // Reactivate previous app and paste
+//     const script = `
+//       tell application "System Events"
+//         set frontmost of (first process whose bundle identifier is "${lastFocusedApp}") to true
+//         delay 0.1
+//         keystroke "v" using {command down}
+//       end tell
+//     `;
+//     execSync(`osascript -e '${script}'`);
+//     console.log('📥 Pasted in previous app');
+//   }
+// });
 
 function launchFocusEngine() {
   const enginePath = path.join(__dirname, 'backend', 'focus_engine.py');
@@ -264,36 +293,81 @@ function triggerSmartReminder() {
   });
 }
 
-
-
 // 🍭 Tray menu
 function createTray() {
   const iconPath = path.join(__dirname, 'iconTemplate.png');
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
 
   tray = new Tray(icon);
+  
+  // Get clipboard menu items from clipboard manager
+  const clipboardMenuItems = clipboardManager ? clipboardManager.createMenuItems() : [];
+  
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Pause/Resume Reminders', click: togglePause },
     { label: 'Show Stats', click: showStats },
     { label: 'Open Dashboard', click: openDashboard },
-    { label: 'Quit', click: () => app.quit() },
     { label: 'Login', click: openAuthWindow },
     { label: 'Focus Summary', click: getFocusSummary },
     { label: '🧠 Talk to Focus Assistant', click: openSidebarChat },
-    { label: '💡 Get Focus Tip Now', click: triggerSmartReminder }
-
+    { label: '💡 Get Focus Tip Now', click: triggerSmartReminder },
+    { type: 'separator' },
+    ...clipboardMenuItems,
+    { type: 'separator' },
+    { label: 'Quit', click: () => app.quit() }
   ]);
+  
   tray.setToolTip('FocusBae is running');
   tray.setContextMenu(contextMenu);
+}
+
+function getTrayMenuTemplate() {
+  return [
+    { label: 'Pause/Resume Reminders', click: togglePause },
+    { label: 'Show Stats', click: showStats },
+    { label: 'Open Dashboard', click: openDashboard },
+    { label: 'Login', click: openAuthWindow },
+    { label: 'Focus Summary', click: getFocusSummary },
+    { label: '🧠 Talk to Focus Assistant', click: openSidebarChat },
+    { label: '💡 Get Focus Tip Now', click: triggerSmartReminder },
+    { type: 'separator' },
+    ...clipboardManager.createMenuItems(),
+    { type: 'separator' },
+    { label: 'Quit', click: () => app.quit() }
+  ];
 }
 
 // 🏁 Startup
 app.whenReady().then(() => {
   launchFocusEngine();
+  
+  // Initialize clipboard manager
+  clipboardManager = new ClipboardManager();
+  clipboardManager.initialize();
+  
+  // Listen for clipboard changes to update tray menu
+ clipboardManager.on = (event) => {
+  if (event === 'historyChanged') {
+   tray.setContextMenu(Menu.buildFromTemplate(getTrayMenuTemplate()));
+  }
+};
+  
   createTray();
   console.log("🕒 Starting auto sync...");
   setInterval(syncToCloud, 15 * 60 * 1000);
-  setInterval(triggerSmartReminder, 45 * 60 * 1000); 
-
+  setInterval(triggerSmartReminder, 45 * 60 * 1000);
 });
 
+// Clean up on exit
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+  if (clipboardManager) {
+    clipboardManager.cleanup();
+  }
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createTray();
+  }
+});
