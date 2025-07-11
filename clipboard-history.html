@@ -17,7 +17,7 @@
       height: 100vh;
     }
     .sidebar {
-      width: 300px;
+      width: 340px;
       background: #23232a;
       border-right: 1px solid #23232a;
       display: flex;
@@ -112,13 +112,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 36px 28px 0 28px;
+      padding: 36px 18px 0 18px;
       background: linear-gradient(120deg, #18181b 80%, #23232a 100%);
       min-width: 0;
     }
     .preview-box {
       width: 100%;
-      max-width: 420px;
+      max-width: 340px;
       min-height: 120px;
       background: #22222a;
       border-radius: 14px;
@@ -147,7 +147,7 @@
     }
     .meta-table {
       width: 100%;
-      max-width: 420px;
+      max-width: 340px;
       margin-bottom: 18px;
       border-collapse: separate;
       border-spacing: 0 2px;
@@ -251,7 +251,14 @@
         meta.textContent = new Date(item.timestamp).toLocaleString();
         info.appendChild(meta);
         div.appendChild(info);
-        div.onclick = () => selectItem(idx);
+        div.onclick = () => {
+          if (selectedIdx === idx) {
+            window.electronAPI.copyAndPasteClipboardItem(history.indexOf(filtered[idx]));
+            window.close();
+          } else {
+            selectItem(idx);
+          }
+        };
         list.appendChild(div);
       });
       renderPreview(filtered[selectedIdx] || null);
@@ -343,3 +350,5 @@
   </script>
 </body>
 </html>
+
+
