@@ -284,7 +284,7 @@ ipcMain.on('close-sidebar', () => {
 // }
 
 function openAuthWindow() {
-  const authURL = "http://localhost:3000/login?redirectToApp=true";
+  const authURL = "https://focusbee-cloud.onrender.com/login?redirectToApp=true";
   shell.openExternal(authURL);
 }
 
